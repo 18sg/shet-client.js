@@ -1,0 +1,23 @@
+{
+  "name": "shet-client",
+  "description": "SHET client",
+  "version": "0.0.2",
+  "homepage": "https://github.com/18sg/node-shet-client",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/18sg/node-shet-client.git"
+  },
+  "author": "Thomas Nixon <tom@tomn.co.uk> (http://tomn.co.uk)",
+  "main": "lib/shet",
+  "directories": {
+    "lib": "lib"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "dependencies": {
+    "q": "*",
+    "recon": "*",
+    "lines-adapter": "*"
+  }
+}
