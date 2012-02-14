@@ -8,7 +8,7 @@
     "url": "git://github.com/18sg/node-shet-client.git"
   },
   "author": "Thomas Nixon <tom@tomn.co.uk> (http://tomn.co.uk)",
-  "main": "lib/shet",
+  "main": "lib/shet.js",
   "directories": {
     "lib": "lib"
   },
