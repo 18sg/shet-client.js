@@ -1,4 +1,6 @@
 {Connector} = require "./connector"
+{Client} = require "./shet_generic"
+
 
 class SocketIoConnector extends Connector
 	constructor: (@socket) ->
@@ -13,4 +15,10 @@ class SocketIoConnector extends Connector
 	disconnect: =>
 		@socket.disconnect()
 
-exports.SocketIoConnector = SocketIoConnector
+
+class SocketClient extends Client
+	constructor: (socket) ->
+		super new SocketIoConnector(socket)
+
+
+exports.SocketClient = SocketClient

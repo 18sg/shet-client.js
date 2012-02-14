@@ -1,4 +1,5 @@
 {Connector} = require "./connector"
+{Client} = require "./shet_generic"
 recon = require "recon"
 lines = require "lines-adapter"
 
@@ -24,4 +25,28 @@ class NodeConnector extends Connector
 	disconnect: =>
 		@connection.end()
 
-exports.NodeConnector = NodeConnector
+
+class NodeClient extends Client
+	constructor: ->
+		super new NodeConnector()
+
+
+listen_socket = (socket) ->
+	socket.sockets.on "connection", (socket_client) ->
+		shet_client = new NodeConnector()
+		
+		shet_client.on "msg", (msg) ->
+			socket_client.emit "msg", msg
+		
+		shet_client.on "disconnect", () ->
+			socket_client.disconnect()
+		
+		socket_client.on "msg", (msg) ->
+			shet_client.send_msg msg
+		
+		socket_client.on "disconnect", (msg) ->
+			shet_client.disconnect()
+
+
+exports.NodeClient = NodeClient
+exports.listen_socket = listen_socket
