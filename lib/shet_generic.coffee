@@ -145,7 +145,7 @@ class Get extends Command
 # Connectors encapsulate a connection to the shet server.
 class Connector extends EventEmitter
 	constructor: ->
-		super
+		super()
 	
 	# Convenience methods to emit specific events; call from subclasses.
 	on_connect: =>
@@ -178,7 +178,8 @@ class Client
 		@dispatch = new CommandDispatcher
 		@next_id = 0
 		
-		for name, cmd of Client.commands
+		# Inject the commands into this instance.
+		for name, cmd of arguments.callee.commands
 			this[name] = cmd.bind(this)
 		
 		# When the client connects/reconnects.
@@ -201,10 +202,11 @@ class Client
 		@connection.on "disconnect", on_disconnect
 		@connection.on "msg", @process_msg
 	
+	# Command functions to be injected at instantiation time.
 	@commands = []
 	
 	# Add a presistent command to the class.
-	# This creates the method to be ran, and injects it into the prototype.
+	# This creates the method to be ran, and adds it to the commands object.
 	@add_presistent_command: (name, cls) ->
 		@commands[name] = (args...) ->
 			# Construct an object of the class, add it to the persistent_commands
@@ -216,7 +218,7 @@ class Client
 			return cmd
 	
 	# Add a non-persistent command.
-	# This creates the method to be ran, and injects it into the prototype.
+	# This creates the method to be ran, and adds it to the commands object.
 	@add_command: (name, cls) ->
 		@commands[name] = (args...) ->
 			# Construct an object of the class, either run it, or put it in the
@@ -270,16 +272,3 @@ class Client
 
 exports.Client = Client
 exports.Connector = Connector
-
-# Example usage:
-
-# client = new Client()
-# e = client.add_event "/bar"
-# client.add_action "/foo", e.raise
-# client.watch "/bar", (x) -> client.call "/call", x
-# client.watch "/bar", console.log
-# x = 0
-# client.add_prop "/baz", 
-# 	-> x,
-# 	(y) -> x = y
-# client.add_action "/call", client.command
