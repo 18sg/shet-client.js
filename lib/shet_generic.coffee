@@ -140,6 +140,34 @@ class Get extends Command
 	run: => 
 		@value.resolve @client.command("get", @path)
 
+
+# Connectors encapsulate a connection to the shet server.
+class Connector extends EventEmitter
+	constructor: ->
+		super
+	
+	# Convenience methods to emit specific events; call from subclasses.
+	on_connect: =>
+		@emit "connect"
+	on_reconnect: =>
+		@emit "reconnect"
+	on_disconnect: =>
+		@emit "disconnect"
+	on_msg: (msg) =>
+		@emit "msg", msg
+	
+	# Public API.
+	
+	# Send a message to the server. msg should be an array (and therefore may
+	# need converting to JSON by the subclasses).
+	send_msg: (msg) =>
+	
+	# Disconnect from the server.
+	disconnect: =>
+
+
+# A generic shet client, that knows nothing about the connection to the server.
+# The constructor argument should be a Connector instance.
 class Client
 	constructor: (@connection) ->
 		@return_callbacks = {}
@@ -238,7 +266,9 @@ class Client
 		@return_callbacks[id] = d
 		return d.promise
 
+
 exports.Client = Client
+exports.Connector = Connector
 
 # Example usage:
 
