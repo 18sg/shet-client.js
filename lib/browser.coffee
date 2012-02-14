@@ -21,4 +21,4 @@ class SocketClient extends Client
 		super new SocketIoConnector(socket)
 
 
-exports.SocketClient = SocketClient
+exports.Client = SocketClient

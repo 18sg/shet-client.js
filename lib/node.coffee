@@ -48,5 +48,5 @@ listen_socket = (socket) ->
 			shet_client.disconnect()
 
 
-exports.NodeClient = NodeClient
+exports.Client = NodeClient
 exports.listen_socket = listen_socket
