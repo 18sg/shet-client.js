@@ -1,4 +1,5 @@
 Q = require "q"
+{EventEmitter} = require "events"
 
 # Dispatcher for shet commands, matching a command (a list) to a handler
 # based on it's first elements.
