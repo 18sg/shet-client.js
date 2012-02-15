@@ -3,6 +3,7 @@
 recon = require "recon"
 lines = require "lines-adapter"
 
+# A connector that uses regular sockets to connect to SHET.
 class NodeConnector extends Connector
 	constructor: ->
 		super
@@ -26,11 +27,13 @@ class NodeConnector extends Connector
 		@connection.end()
 
 
-class NodeClient extends Client
-	constructor: ->
-		super new NodeConnector()
+# Connect to SHET using a NodeConnector. Returns a connected Client instance.
+connect = () ->
+	new Client(new NodeConnector())
 
-
+	
+# Accept connections on the given Socket.IO channel, and pass traffic to the
+# SHET server (which is resolved as above).
 listen_socket = (socket) ->
 	socket.sockets.on "connection", (socket_client) ->
 		shet_client = new NodeConnector()
@@ -48,5 +51,4 @@ listen_socket = (socket) ->
 			shet_client.disconnect()
 
 
-exports.Client = NodeClient
-exports.listen_socket = listen_socket
+module.exports = {connect, listen_socket}

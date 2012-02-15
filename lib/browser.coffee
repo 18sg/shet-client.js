@@ -1,7 +1,7 @@
 {Connector} = require "./connector"
 {Client} = require "./shet_generic"
 
-
+# Connect to shet using the given Socket.IO connection.
 class SocketIoConnector extends Connector
 	constructor: (@socket) ->
 		super
@@ -16,9 +16,10 @@ class SocketIoConnector extends Connector
 		@socket.disconnect()
 
 
-class SocketClient extends Client
-	constructor: (socket) ->
-		super new SocketIoConnector(socket)
+# Connect to shet using the given Socket.IO connection. Returns a Client
+# instance.
+connect = (socket) ->
+	new Client(new SocketIoConnector(socket))
 
 
-exports.Client = SocketClient
+module.exports = {connect}

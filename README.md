@@ -9,7 +9,7 @@ A client library for [SHET](https://github.com/18sg/SHET). It can be used in
 ## Use
 ### In Node.js
 
-	var shet = new (require("shet-client").Client)();
+	var shet = require("shet-client").connect();
 
 ### In the browser
 
@@ -30,7 +30,7 @@ Include this in your page, then add the something like this to the server:
 ...and something like this to the client:
 
 	# after "var socket = io.connect(...);"
-	var shet = new (require("shet-client").Client)(socket);
+	var shet = require("shet-client").connect(socket);
 
 This creates a SHET client, that can be used exactly as in Node.
 
@@ -40,12 +40,12 @@ Rather than using callbacks for everything, this library uses
 [Q](https://github.com/kriskowal/q) to provide 'deferred values' or 'promises',
 as in the Twisted version.
 
-#### var c = new Client()
+#### var c = connect()
 
 Create a new client. The host and port to connect to are taken from $SHET_HOST
 and $SHET_PORT, and default to localhost:11235, as is standard.
 
-#### var c = new Client(socket)
+#### var c = connect(socket)
 
 Create a new client connected to the given Socket.IO channel.
 
