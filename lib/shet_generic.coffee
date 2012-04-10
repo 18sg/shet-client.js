@@ -169,6 +169,15 @@ class Connector extends EventEmitter
 	disconnect: =>
 
 
+# Turn something that's possibly an error into something more informative to be
+# serialised to json.
+jsonify_error = (x) ->
+	if x instanceof Error
+		x.toString()
+	else
+		x
+
+
 # A generic shet client, that knows nothing about the connection to the server.
 # The constructor argument should be a Connector instance.
 class Client
@@ -253,7 +262,7 @@ class Client
 			Q.call(@dispatch.call, null, [command, args...])
 			.then(
 				(value) => @do_return id, 0, value,
-				(value) => @do_return id, 1, value)
+				(value) => @do_return id, 1, jsonify_error value)
 	
 	# Send a raw command (should be a list of items).
 	send_command: (cmd) =>
