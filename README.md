@@ -107,4 +107,4 @@ Built with [CoffeeScript](http://coffeescript.org/),
 [Q](https://github.com/kriskowal/q),
 [Browserify](https://github.com/substack/node-browserify),
 [recon](https://github.com/substack/node-recon), and
-[lines-adapter](https://github.com/jonseymour/node-lines-adapter).
+[Lazy](https://github.com/pkrumins/node-lazy).
