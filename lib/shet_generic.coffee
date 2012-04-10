@@ -44,10 +44,12 @@ class CommandDispatcher
 	call: (command) =>
 		sub_call = (commands, cmd) ->
 			if cmd.length == 0
-				console.log "Not enough arguments in command " + command
+				throw new Error "Not enough arguments in command."
 			else
 				[first, rest...] = cmd
 				switch typeof commands[first]
+					when "undefined"
+						throw new Error "Unrecognised command."
 					when "function"
 						commands[first](rest...)
 					when "object"
@@ -248,7 +250,8 @@ class Client
 			delete @return_callbacks[id]
 		else
 			# Call the correct command, and add callbacks to send a return.
-			Q.when(@dispatch.call([command, args...]),
+			Q.call(@dispatch.call, null, [command, args...])
+			.then(
 				(value) => @do_return id, 0, value,
 				(value) => @do_return id, 1, value)
 	
