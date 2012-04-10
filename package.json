@@ -19,6 +19,6 @@
   "dependencies": {
     "q": "*",
     "recon": "*",
-    "lines-adapter": "*"
+    "lazy": "*"
   }
 }

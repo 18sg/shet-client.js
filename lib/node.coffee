@@ -1,7 +1,7 @@
 {Connector} = require "./connector"
 {Client} = require "./shet_generic"
 recon = require "recon"
-lines = require "lines-adapter"
+Lazy=require("lazy")
 
 # A connector that uses regular sockets to connect to SHET.
 class NodeConnector extends Connector
@@ -17,8 +17,7 @@ class NodeConnector extends Connector
 		@connection.on "connect", @on_connect
 		@connection.on "reconnect", @on_reconnect
 		@connection.on "drop", @on_disconnect
-		lines(@connection).on "data", (line) =>
-			@on_msg JSON.parse(line)
+		new Lazy(@connection).lines.map(JSON.parse).forEach(@on_msg)
 	
 	send_msg: (msg) =>
 		@connection.write (JSON.stringify msg) + "\r\n"
