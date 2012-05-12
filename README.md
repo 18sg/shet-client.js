@@ -40,16 +40,22 @@ Rather than using callbacks for everything, this library uses
 [Q](https://github.com/kriskowal/q) to provide 'deferred values' or 'promises',
 as in the Twisted version.
 
-#### var c = connect()
+#### var c = connect([options])
 
-Create a new client. The host and port to connect to are taken from $SHET_HOST
-and $SHET_PORT, and default to localhost:11235, as is standard.
+Create a new client.
+
+`options` is an optional object that may contain the following keys:
+
+- `host`: The host to connect to. Defaults to $SHET_HOST or localhost.
+- `port`: The port to connect to. Defaults to $SHET_PORT or 11235.
+- `ping_interval`: The interval in milliseconds for sending pings to the server.
+  Defaults to 30,000. If 0, no pings are sent.
 
 #### var c = connect(socket)
 
 Create a new client connected to the given Socket.IO channel.
 
-#### listen_socket(socket)
+#### listen_socket(socket, [options])
 
 Accept connections on the given Socket.IO channel, and pass traffic to the SHET
 server (which is resolved as above).

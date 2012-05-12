@@ -152,8 +152,6 @@ class Connector extends EventEmitter
 	# Convenience methods to emit specific events; call from subclasses.
 	on_connect: =>
 		@emit "connect"
-	on_reconnect: =>
-		@emit "reconnect"
 	on_disconnect: =>
 		@emit "disconnect"
 	on_msg: (msg) =>
@@ -167,6 +165,9 @@ class Connector extends EventEmitter
 	
 	# Disconnect from the server.
 	disconnect: =>
+	
+	# Tell the connection to reconnect (when a ping fails, usually).
+	reconnect: =>
 
 
 # Turn something that's possibly an error into something more informative to be
@@ -181,13 +182,17 @@ jsonify_error = (x) ->
 # A generic shet client, that knows nothing about the connection to the server.
 # The constructor argument should be a Connector instance.
 class Client
-	constructor: (@connection) ->
+	constructor: (opts, @connection) ->
 		@return_callbacks = {}
 		@persistent_commands = []
 		@waiting_commands = []
 		@connected = false
 		@dispatch = new CommandDispatcher
 		@next_id = 0
+		@ping_id = null
+		
+		# Options.
+		@ping_interval = opts.ping_interval ? 30000
 		
 		# Inject the commands into this instance.
 		for name, cmd of arguments.callee.commands
@@ -196,6 +201,8 @@ class Client
 		# When the client connects/reconnects.
 		on_connect = =>
 			@connected = true
+			if @ping_interval then @start_ping @ping_interval
+			
 			# Re-add the persistent commands.
 			for node in @persistent_commands
 				node.add()
@@ -207,9 +214,9 @@ class Client
 		# When the client disconnects.
 		on_disconnect = =>
 			@connected = false
+			if @ping_interval then @stop_ping()
 		
 		@connection.on "connect", on_connect
-		@connection.on "reconnect", on_connect
 		@connection.on "disconnect", on_disconnect
 		@connection.on "msg", @process_msg
 	
@@ -280,6 +287,30 @@ class Client
 		d = Q.defer()
 		@return_callbacks[id] = d
 		return d.promise
+	
+	# Start pinging the server every timeout milliseconds.
+	start_ping: (timeout) =>
+		if @ping_id == null
+			# The first time round, act as if a ping was received.
+			ping_returned = true
+			
+			do_ping = =>
+				if ping_returned
+					# If the last ping was successful, reset and send another.
+					ping_returned = false
+					@command("ping").fin () ->
+						ping_returned = true
+				else
+					# Otherwise, tell the connection to restart.
+					@connection.reconnect()
+			
+			@ping_id = setInterval do_ping, timeout
+	
+	# Stop pinging the server.
+	stop_ping: =>
+		if @ping_id != null
+			clearInterval @ping_id
+			@ping_id = null
 
 
 exports.Client = Client
