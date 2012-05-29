@@ -181,8 +181,10 @@ jsonify_error = (x) ->
 
 # A generic shet client, that knows nothing about the connection to the server.
 # The constructor argument should be a Connector instance.
-class Client
+class Client extends EventEmitter
 	constructor: (opts, @connection) ->
+		super()
+		
 		@return_callbacks = {}
 		@persistent_commands = []
 		@waiting_commands = []
@@ -201,6 +203,7 @@ class Client
 		# When the client connects/reconnects.
 		on_connect = =>
 			@connected = true
+			@emit "connect"
 			if @ping_interval then @start_ping @ping_interval
 			
 			# Re-add the persistent commands.
@@ -214,6 +217,7 @@ class Client
 		# When the client disconnects.
 		on_disconnect = =>
 			@connected = false
+			@emit "disconnect"
 			if @ping_interval then @stop_ping()
 		
 		@connection.on "connect", on_connect

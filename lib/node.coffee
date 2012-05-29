@@ -9,80 +9,88 @@ class NodeConnector extends Connector
 		super
 		# Make a connection, and bind to the appropriate events.
 		@connection = new net.Socket
-		@connection.on "connect", @on_connect
-		@connection.on "close", @on_disconnect
+		# @connection.on "connect", @on_connect
+		# @connection.on "close", @on_disconnect
 		new Lazy(@connection).lines.map(JSON.parse).forEach(@on_msg)
 		
-		# State machine.
-		@state = "start"
-		@listeners = (f) =>
 	
 		# Various options.
 		@connect_delay = opts.connect_delay ? 1500
 		@shet_port = opts.port ? (parseInt(process.env["SHET_PORT"]) || 11235)
 		@shet_host = opts.host ? (process.env["SHET_HOST"] || "localhost")
 		
-		# Connect.
-		@state_connecting()
+		# State machine.
+		@states =
+			start:
+				next: ["connecting"]
+			connecting:
+				enter: =>
+					@connection.connect @shet_port, @shet_host
+				next: ["connected", "wait"]
+				events:
+					connect: => @enter_state "connected"
+					close: => @enter_state "wait"
+					error: => @enter_state "wait"
+			connected:
+				enter: =>
+					@on_connect()
+				exit: =>
+					@on_disconnect()
+				events:
+					close: => @enter_state "wait"
+					error: => @enter_state "wait"
+				next: ["wait"]
+			wait:
+				enter: =>
+					@connection.end()
+					setTimeout (=> @enter_state "connecting"), @connect_delay
+				next: ["connecting"]
+		
+		@init_state "connecting"
 	
-	# Take a function that will be passed @connection.once then this is called,
-	# then passed connection.removelistener when this is called. This is usefull
-	# to setup listeners until the next state transition.
-	setup_listeners: (f) =>
-		@listeners(@connection.removeListener.bind(@connection))
-		f(@connection.once.bind(@connection))
-		@listeners = f
-	
-	# Connection has been initialted, but is not connected yet.
-	state_connecting: =>
-		if @state in ["start", "wait"]
-			@state = "connecting"
+	# Move to the next state.
+	# This checks that this is a valid transition unless force is given.
+	enter_state: (next, force=false) =>
+		if force or next in @states[@state].next
+			@states[@state].exit?()
 			
-			@connection.connect @shet_port, @shet_host
+			if @states[@state].events?
+				@connection.removeListener k, v for k, v of @states[@state].events
 			
-			@setup_listeners (once) =>
-				once "connect", @state_connected
-				once "close", @state_wait
-				once "error", @state_wait
+			@state = next
+			
+			@states[@state].enter?()
+			
+			if @states[@state].events?
+				@connection.once k, v for k, v of @states[@state].events
 		else
-			console.error "Invalid transition from %s to connecting.", @state
+			console.error "Invalid transition from %s to %s.", @state, next
 	
-	# Connection is connected.
-	state_connected: =>
-		if @state in ["connecting"]
-			@state = "connected"
+	# Initialise the state.
+	init_state: (next) =>
+			@state = next
+			@states[@state].enter?()
 			
-			@setup_listeners (once) =>
-				once "close", @state_wait
-				once "error", @state_wait
-		else
-			console.error "Invalid transition from %s to connected.", @state
+			if @states[@state].events?
+				@connection.once k, v for k, v of @states[@state].events
 	
-	# Connection is waiting before being reconnected.
-	state_wait: =>
-		if @state in ["connecting", "connected"]
-			@state = "wait"
-			
-			@connection.end()
-			setTimeout @state_connecting, @connect_delay
-			
-			@setup_listeners (once) =>
-		else
-			console.error "Invalid transition from %s to wait.", @state
+	# Force a transition.
+	reset_state: (next) =>
+		@enter_state next, true
 	
 	# Tell the connection to reconnect if it's not already.
 	reconnect: =>
 		if @state in ["connecting", "connected"]
-			@state_wait()
+			@enter_state "wait"
 	
+	# Write a JSON message to the socket.
 	send_msg: (msg) =>
 		@connection.write (JSON.stringify msg) + "\r\n"
 	
 	# Stop the connection.
 	disconnect: =>
-		@state = "start"
-		@setup_listeners (once) =>
 		@connection.end()
+		@reset_state "start"
 
 # Connect to SHET using a NodeConnector. Returns a connected Client instance.
 connect = (opts = {}) ->
