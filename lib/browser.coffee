@@ -1,5 +1,4 @@
-{Connector} = require "./connector"
-{Client} = require "./shet_generic"
+{Client, Connector} = require "./shet_generic"
 
 # Connect to shet using the given Socket.IO connection.
 class SocketIoConnector extends Connector

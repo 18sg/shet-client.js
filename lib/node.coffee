@@ -1,5 +1,4 @@
-{Connector} = require "./connector"
-{Client} = require "./shet_generic"
+{Client, Connector} = require "./shet_generic"
 Lazy=require("lazy")
 net = require "net"
 
